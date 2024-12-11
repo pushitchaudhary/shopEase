@@ -1,5 +1,10 @@
 import { Sequelize } from 'sequelize-typescript';
 import path from 'path';
+import CategoryModel from './models/category';
+import ProductModel from './models/product';
+import UserModel from './models/user';
+import OrderModels from './models/order';
+import OrderItemModel from './models/orderItems';
 
 
 const sequelize = new Sequelize({
@@ -36,6 +41,12 @@ sequelize.sync({ force: false })
         console.error('Error synchronizing database:', err);
     });
 
+
+// Relationship
+CategoryModel.hasMany(ProductModel, {foreignKey : {name : 'categoryId', allowNull : false}})
+UserModel.hasMany(OrderModels, {foreignKey : {name : 'staffId', allowNull : false }})
+OrderModels.hasMany(OrderItemModel, {foreignKey : {name : 'orderId', allowNull : false}})
+ProductModel.hasMany(OrderItemModel, {foreignKey : {name : 'productId', allowNull : false}})
 
 
 export default sequelize;
