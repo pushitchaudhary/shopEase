@@ -28,6 +28,12 @@ class UserModel extends Model {
   declare email: string;
 
   @Column({
+    type: DataType.TEXT,
+    allowNull: false,
+  })
+  declare password: string;
+
+  @Column({
     type: DataType.STRING(15), 
     allowNull: false,
   })
