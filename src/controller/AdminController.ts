@@ -57,6 +57,20 @@ class AdminController{
 
     }
 
+    async addSupplier(req:Request, res:Response): Promise<void>{
+        const {name, email, phone, dateOfBirth, gender, address, status} = req.body
+
+        if(!name || !email || !phone || !dateOfBirth || !gender || !address || !status){
+            res.status(200).json({
+                message : 'Please fill all required fields'
+            })
+            return
+        }
+        res.status(200).json({
+            message : "pass"
+        })
+    }
+
 
 }
 
