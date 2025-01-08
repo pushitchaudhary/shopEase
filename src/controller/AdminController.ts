@@ -4,6 +4,7 @@ import sequelize from '../database/connection'
 import { DataTypes, QueryTypes } from "sequelize";
 import { AdminInterface } from '../global/interface/interface';
 const bcrypt = require('bcrypt');
+let jwt = require('jsonwebtoken');
 
 class AdminController{
 
@@ -47,11 +48,16 @@ class AdminController{
             type : QueryTypes.SELECT,
             replacements : [email]
         })
-        
+
+        // JWT TOKEN
+        const jwtToken = jwt.sign({ adminId: fetchUserData.id}, process.env.ADMIN_JWT_TOKEN);
         res.status(200).json({
-            message : fetchUserData
+            message : jwtToken
         })
+
     }
+
+
 }
 
 export default new AdminController
