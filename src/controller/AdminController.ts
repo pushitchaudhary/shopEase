@@ -2,9 +2,14 @@ import {Request, Response} from 'express'
 import { isValidEmail } from '../global/validation'
 import sequelize from '../database/connection'
 import { DataTypes, QueryTypes } from "sequelize";
-import { AdminInterface } from '../global/interface/interface';
+import MulterRequest, { AdminInterface } from '../global/interface/interface';
 const bcrypt = require('bcrypt');
 let jwt = require('jsonwebtoken');
+import multer from 'multer';
+import { DeleteFile } from '../service/FileDelete';
+import { v4 as uuidv4 } from 'uuid';
+import { stat } from 'fs';
+
 
 class AdminController{
 
@@ -58,16 +63,69 @@ class AdminController{
     }
 
     async addSupplier(req:Request, res:Response): Promise<void>{
+        console.log('triggred addSupplier')
+        const multerReq = req as unknown as MulterRequest
         const {name, email, phone, dateOfBirth, gender, address, status} = req.body
+        const id = uuidv4()
+        const time = new Date()
 
-        if(!name || !email || !phone || !dateOfBirth || !gender || !address || !status){
-            res.status(200).json({
-                message : 'Please fill all required fields'
+        const supplierPhoto = multerReq.file?.path
+        let supplierPhotoPath = ''
+
+        if(supplierPhoto){
+            const cutSupplierFileURL= supplierPhoto.substring("src/uploads/".length);
+            const newSupplierFilePath = process.env.HOST_PATH + cutSupplierFileURL 
+            supplierPhotoPath = newSupplierFilePath
+
+
+            if(!name || !email || !phone || !dateOfBirth || !gender || !address || !status){
+                const response =  DeleteFile(supplierPhoto)
+                res.status(200).json({
+                    message : 'Please fill all required fields'
+                })
+                return
+            }
+
+        }else{
+            res.status(400).json({
+                message : "Please upload supplier photo"
             })
             return
         }
+
+        // Is Email Already Exists
+        const [isEmailExist] = await sequelize.query(`SELECT email FROM suppliers WHERE email = ?`,{
+            type : QueryTypes.SELECT,
+            replacements : [email]
+        })
+
+        if(isEmailExist){
+            res.status(400).json({
+                message : "Email Already Exists"
+            })
+            return
+        }
+
+        // Is Phone Already Exists
+        const [isPhoneExists] = await sequelize.query(`SELECT phoneNumber FROM suppliers WHERE phoneNumber = ?`,{
+            type : QueryTypes.SELECT,
+            replacements : [email]
+        })
+
+        if(isPhoneExists){
+            res.status(400).json({
+                message : "Phone Already Exists"
+            })
+            return
+        }
+       
+        await sequelize.query(`INSERT INTO suppliers(id, name, email, phoneNumber, profilePictureUrl, dateOfBirth, gender, address, status, createdAt, updatedAt) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,{
+            type : QueryTypes.INSERT,
+            replacements : [id, name, email, phone, supplierPhotoPath, dateOfBirth, gender, address, status, time, time]
+        })
+
         res.status(200).json({
-            message : "pass"
+            message : "Supplier Added Successfully"
         })
     }
 
