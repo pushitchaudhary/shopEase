@@ -12,7 +12,7 @@ const storage = multer.diskStorage({
         if (!allowedFileTypes.includes(file.mimetype)) {
             cb(new Error("This file type is not accepted"), '');
         } else {
-            const uploadPath = './uploads';  // You can set the path where you want to store files
+            const uploadPath = './src/uploads';  // You can set the path where you want to store files
             if (!fs.existsSync(uploadPath)) {
                 fs.mkdirSync(uploadPath);  // Creates the directory if it doesn't exist
             }

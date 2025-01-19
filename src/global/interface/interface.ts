@@ -1,4 +1,5 @@
 import { Request } from 'express';
+import { Role } from '../../middleware/authMiddleware';
 
 export default interface MulterRequest extends Request {
     files: {
@@ -6,9 +7,14 @@ export default interface MulterRequest extends Request {
     };
 }
 
+export interface UserRequestInterface  extends Request {
+    headers: any;
+    userId : string;
+    userEmail : string
+    role : string
+}
 
-
-export interface AdminInterface  {
+export interface UserInterface  {
     id : string,
     name : string,
     email : string
@@ -20,4 +26,10 @@ export interface AdminInterface  {
     address : string,
     role : string,
     status : string,
+}
+
+export interface AuthRequest extends Request{
+    email : string, 
+    role : string, 
+    id : string
 }

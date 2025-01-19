@@ -12,9 +12,11 @@ app.use(express.json());
 import AdminRegisterFunction from './service/adminRegister';
 
 setTimeout(() => {
-    AdminRegisterFunction()
+    // AdminRegisterFunction()
 }, 1000); 
 
+// Serve static files from the 'src/uploads' directory
+app.use(express.static("./src/uploads/")) 
 
 app.use(cors({ 
     origin: ['http://localhost:5173','http://localhost:5174'] 

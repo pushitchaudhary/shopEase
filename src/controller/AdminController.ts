@@ -2,13 +2,15 @@ import {Request, Response} from 'express'
 import { isValidEmail } from '../global/validation'
 import sequelize from '../database/connection'
 import { DataTypes, QueryTypes } from "sequelize";
-import MulterRequest, { AdminInterface } from '../global/interface/interface';
+import MulterRequest, { UserInterface, UserRequestInterface } from '../global/interface/interface';
 const bcrypt = require('bcrypt');
 let jwt = require('jsonwebtoken');
 import multer from 'multer';
 import { DeleteFile } from '../service/FileDelete';
 import { v4 as uuidv4 } from 'uuid';
 import { stat } from 'fs';
+import { error } from 'console';
+import { waitForDebugger } from 'inspector';
 
 
 class AdminController{
@@ -24,7 +26,7 @@ class AdminController{
         }
 
         // Query the database to check if the user exists with the provided email
-        const [isUserExists]:AdminInterface[] = await sequelize.query(`SELECT password FROM users WHERE email = ?`,{
+        const [isUserExists]:UserInterface[] = await sequelize.query(`SELECT password FROM users WHERE email = ?`,{
             type : QueryTypes.SELECT,
             replacements : [email]
         })
@@ -49,7 +51,7 @@ class AdminController{
         }
 
         // Query the database to check if the user exists with the provided email
-        const [fetchUserData]:AdminInterface[] = await sequelize.query(`SELECT name, email, phoneNumber, profilePictureUrl, dateOfBirth, gender, address FROM users WHERE email = ?`,{
+        const [fetchUserData]:UserInterface[] = await sequelize.query(`SELECT id, name, email, phoneNumber, profilePictureUrl, dateOfBirth, gender, address FROM users WHERE email = ?`,{
             type : QueryTypes.SELECT,
             replacements : [email]
         })
@@ -62,8 +64,8 @@ class AdminController{
 
     }
 
+    // Add Supplier
     async addSupplier(req:Request, res:Response): Promise<void>{
-        console.log('triggred addSupplier')
         const multerReq = req as unknown as MulterRequest
         const {name, email, phone, dateOfBirth, gender, address, status} = req.body
         const id = uuidv4()
@@ -79,7 +81,7 @@ class AdminController{
 
 
             if(!name || !email || !phone || !dateOfBirth || !gender || !address || !status){
-                const response =  DeleteFile(supplierPhoto)
+                DeleteFile(supplierPhoto)
                 res.status(200).json({
                     message : 'Please fill all required fields'
                 })
@@ -126,6 +128,106 @@ class AdminController{
 
         res.status(200).json({
             message : "Supplier Added Successfully"
+        })
+    }
+
+    // Fetch Supplier List
+    async supplierList(req:Request, res:Response): Promise<void>{
+        const supplierList = await sequelize.query(`SELECT * FROM suppliers`,{
+            type : QueryTypes.SELECT
+        })
+
+        res.status(200).json({
+            message : supplierList
+        })
+    }
+
+    // Delete Supplier
+    async deleteSupplier(req:UserRequestInterface, res:Response):Promise<void>{
+        const supplierId = req.params.supplierId
+
+        if(!supplierId){
+            res.status(400).json({
+                message : "Please Provide Supplier Id"
+            })
+            return
+        }
+
+        await sequelize.query(`DELETE FROM suppliers WHERE id = ?`, {
+            type : QueryTypes.DELETE,
+            replacements: [supplierId]
+        })
+        
+        res.status(200).json({
+            message : "Successfully Deleted"
+        })
+    }
+
+    // Fetch Single Supplier Details
+    async fetchSingleSupplierDetails(req:UserRequestInterface, res:Response) :Promise<void>{
+        const supplierId = req.params.supplierId
+        if(!supplierId){
+            res.status(400).json({
+                message : "Please provide supplier Id"
+            })
+            return
+        }
+
+        const [response]:any = await sequelize.query(`SELECT * FROM suppliers WHERE id = ?`,{
+            type : QueryTypes.SELECT,
+            replacements : [supplierId]
+        })
+
+        res.status(200).json({
+            message : response
+        })
+    }
+
+    // Update Supplier Details
+    async updateSupplierDetails(req:UserRequestInterface, res:Response) : Promise<void>{
+        const supplierId = req.params.supplierId
+        const multerReq = req as unknown as MulterRequest
+        const {name, email, phone, dateOfBirth, gender, address, status} = req.body
+        const time = new Date()
+        if(!supplierId){
+            res.status(400).json({
+                message : "Please Provide Supplier Id"
+            })
+            return
+        }
+
+        if(!name || !email || !phone || !dateOfBirth || !gender || !address || !status){
+            res.status(200).json({
+                message : 'Please fill all required fields'
+            })
+            return
+        }
+
+        const [oldSupplierPhotoPath]: UserInterface[] = await sequelize.query(`SELECT profilePictureUrl FROM suppliers WHERE id = ?`,{
+            type : QueryTypes.SELECT,
+            replacements : [supplierId]
+        })
+
+        const supplierPhoto = multerReq.file?.path
+        let StudentPhotoURLPath = ''
+        let newSupplierPhotoURLPath = ''
+
+        if(supplierPhoto){
+            const cutSupplierPhotoURL= supplierPhoto.substring("src/uploads/".length);
+            newSupplierPhotoURLPath = process.env.HOST_PATH + cutSupplierPhotoURL   // Use this for inserting in the table
+            StudentPhotoURLPath = newSupplierPhotoURLPath  // Use this for inserting in the table
+            DeleteFile(oldSupplierPhotoPath.profilePictureUrl)
+        }else{
+            StudentPhotoURLPath = oldSupplierPhotoPath.profilePictureUrl
+        }
+
+        await sequelize.query(`UPDATE suppliers SET name = ?, email = ?, phoneNumber = ?, profilePictureUrl = ?, dateOfBirth = ?, gender = ?, address = ?, status = ?, updatedAt = ? WHERE id = ?`,{
+            type : QueryTypes.UPDATE,
+            replacements : [name, email, phone, StudentPhotoURLPath, dateOfBirth, gender, address, status, time, supplierId]
+        })
+
+        res.status(200).json({
+            message : "Success Supplier Updated"
         })
     }
 
