@@ -33,3 +33,11 @@ export interface AuthRequest extends Request{
     role : string, 
     id : string
 }
+
+export interface CategoryName{
+    id : string,
+    name : string,
+    status : boolean,
+    createdAt : string,
+    updatedAt : string
+}

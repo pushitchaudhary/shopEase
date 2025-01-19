@@ -2,14 +2,14 @@ import {Request, Response} from 'express'
 import { isValidEmail } from '../global/validation'
 import sequelize from '../database/connection'
 import { DataTypes, QueryTypes } from "sequelize";
-import MulterRequest, { UserInterface, UserRequestInterface } from '../global/interface/interface';
+import MulterRequest, { CategoryName, UserInterface, UserRequestInterface } from '../global/interface/interface';
 const bcrypt = require('bcrypt');
 let jwt = require('jsonwebtoken');
 import multer from 'multer';
 import { DeleteFile } from '../service/FileDelete';
 import { v4 as uuidv4 } from 'uuid';
 import { stat } from 'fs';
-import { error } from 'console';
+import { error, time } from 'console';
 import { waitForDebugger } from 'inspector';
 
 
@@ -63,6 +63,10 @@ class AdminController{
         })
 
     }
+
+            //////////////////////////////////////////////////
+            //////////      SUPPLIER CONTROLLER    //////////
+            //////////////////////////////////////////////////
 
     // Add Supplier
     async addSupplier(req:Request, res:Response): Promise<void>{
@@ -153,6 +157,14 @@ class AdminController{
             return
         }
 
+        // Removing Photos from uploads folder
+        const [oldSupplierPhotoPath]: UserInterface[] = await sequelize.query(`SELECT profilePictureUrl FROM suppliers WHERE id = ?`,{
+            type : QueryTypes.SELECT,
+            replacements : [supplierId]
+        })
+        DeleteFile(oldSupplierPhotoPath.profilePictureUrl)
+
+
         await sequelize.query(`DELETE FROM suppliers WHERE id = ?`, {
             type : QueryTypes.DELETE,
             replacements: [supplierId]
@@ -231,6 +243,43 @@ class AdminController{
         })
     }
 
+
+            //////////////////////////////////////////////////
+            ////////////////    SUPPLIER TASK    /////////////
+            //////////////////////////////////////////////////
+    async addCategory(req:Request, res:Response) : Promise<void>{
+        const id = uuidv4()
+        const {categoryName, status} = req.body
+        const time = new Date();
+
+        if(!categoryName || !status){
+            res.status(400).json({
+                message : "Please Provide all required fields"
+            })
+            return
+        }
+
+        const [isAlredyExistsCategoryName]:CategoryName[] = await sequelize.query(`SELECT name FROM category WHERE name = ?`,{
+            type : QueryTypes.SELECT,
+            replacements : [categoryName]
+        })
+
+        if(isAlredyExistsCategoryName){
+            res.status(400).json({
+                message : "Category Name already exists !!"
+            })
+            return
+        }
+
+        await sequelize.query(`INSERT INTO category( id, name, status, createdAt, updatedAt) VALUES( ?, ?, ?, ?, ?)`,{
+            type : QueryTypes.INSERT,
+            replacements : [id, categoryName, status, time, time]
+        })
+
+        res.status(200).json({
+            message : "Successfully Category Added !!"
+        })
+    }
 
 }
 
