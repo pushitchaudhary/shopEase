@@ -247,6 +247,8 @@ class AdminController{
             //////////////////////////////////////////////////
             ////////////////    SUPPLIER TASK    /////////////
             //////////////////////////////////////////////////
+
+    // To Add Category 
     async addCategory(req:Request, res:Response) : Promise<void>{
         const id = uuidv4()
         const {categoryName, status} = req.body
@@ -278,6 +280,111 @@ class AdminController{
 
         res.status(200).json({
             message : "Successfully Category Added !!"
+        })
+    }
+
+    // To Fetch Category List
+    async fetchCategoryList(req:Request, res:Response) :Promise<void>{
+        const categoryList = await sequelize.query(`SELECT id, name, status, createdAt, updatedAt FROM category`,{
+            type : QueryTypes.SELECT,
+        })
+        res.status(200).json({
+            message : categoryList
+        })
+    }
+
+    // To Fetch Single Category Details
+    async fetchSingleCategoryDetail(req:Request, res:Response) : Promise<void>{
+        const categoryId = req.params.categoryId
+
+        if(!categoryId){
+            res.status(400).json({
+                message : "Please Provide category Id"
+            })
+            return
+        }
+
+        const [categoryDetails] = await sequelize.query(`SELECT name, status FROM category WHERE id = ?`,{
+            type : QueryTypes.SELECT,
+            replacements : [categoryId]
+        })
+
+        res.status(200).json({
+            message : categoryDetails
+        })
+    }
+
+    // To Update Category Detail
+    async updateCategoryDetail(req:Request, res:Response) : Promise<void>{
+        const categoryId = req.params.categoryId
+        const {categoryName, status} = req.body
+        const time = new Date();
+
+        if(!categoryId){
+            res.status(400).json({
+                message : "Please Provide Category Id"
+            })
+            return
+        }
+
+        if(!categoryName || !status){
+            res.status(400).json({
+                message : "Please Provide all required fields"
+            })
+            return
+        }
+
+        const [isAlredyExistsCategoryName]:CategoryName[] = await sequelize.query(`SELECT name FROM category WHERE id != ? AND name = ?`,{
+            type : QueryTypes.SELECT,
+            replacements : [categoryId, categoryName]
+        })
+
+        if(isAlredyExistsCategoryName){
+            res.status(400).json({
+                message : "Category Name already exists !!"
+            })
+            return
+        }
+
+        await sequelize.query(`UPDATE category SET name = ?, status = ?, updatedAt = ? WHERE id = ?`,{
+            type : QueryTypes.UPDATE,
+            replacements : [categoryName, status, time, categoryId]
+        })
+
+        res.status(200).json({
+            message : "Successfully Category Updated !!"
+        })
+    }
+
+    // To delete Category
+    async DeleteCategory(req:Request, res:Response) :Promise<void>{
+        const categoryId = req.params.categoryId
+        if(!categoryId){
+            res.status(400).json({
+                message : "Please Provide Category Id"
+            })
+            return
+        }
+
+        const [isCategoryExists] = await sequelize.query(`SELECT * FROM category WHERE id = ?`,{
+            type : QueryTypes.SELECT,
+            replacements : [categoryId]
+        })
+
+        if(!isCategoryExists){
+            res.status(404).json({
+                message : "Category Not Found !!"
+            })
+            return
+        }
+
+        await sequelize.query('DELETE FROM category WHERE id = ?',{
+            type : QueryTypes.DELETE,
+            replacements : [categoryId]
+        })
+
+        res.status(200).json({
+            message : "Category Successfully Deleted !!"
         })
     }
 

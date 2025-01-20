@@ -11,7 +11,7 @@ export enum Role {
 }
 
 class authMiddleware {
-    async isAuthenticatedAdmin(req:UserRequestInterface, res:Response, next:NextFunction) :Promise<void>{
+    async isAuthenticatedUser(req:UserRequestInterface, res:Response, next:NextFunction) :Promise<void>{
         const token = req.headers.authorization;
 
         if(!token || token == undefined || token == null){
