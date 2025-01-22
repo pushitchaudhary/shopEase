@@ -243,9 +243,20 @@ class AdminController{
         })
     }
 
+    // To Fetch Supplier List (STATUS ON)
+    async fetchSupplierList_StatusON(req:Request, res:Response) : Promise<void>{
+        const supplierList_StatusON = await sequelize.query(`SELECT id, name, email FROM suppliers WHERE status = ?`,{
+            type : QueryTypes.SELECT,
+            replacements : [1]
+        })
+
+        res.status(200).json({
+            message : supplierList_StatusON
+        })
+    }
 
             //////////////////////////////////////////////////
-            ////////////////    SUPPLIER TASK    /////////////
+            //////////      CATEGORY CONTROLLER    //////////
             //////////////////////////////////////////////////
 
     // To Add Category 
@@ -387,6 +398,68 @@ class AdminController{
             message : "Category Successfully Deleted !!"
         })
     }
+
+    // To Fetch Category List (STATUS ON)
+    async fetchCategory_StatusON(req:Request, res:Response) : Promise<void>{
+        console.log('triggred fetchCategory_StatusON')
+        const categoryList:CategoryName[] = await sequelize.query(`SELECT id, name FROM category WHERE status = ?`,{
+            type : QueryTypes.SELECT,
+            replacements : [1]
+        })
+
+        res.status(200).json({
+            message : categoryList
+        })
+    }        
+
+            //////////////////////////////////////////////////
+            ///////////    PRODUCT CONTROLLER     ////////////
+            //////////////////////////////////////////////////
+
+    // To Add Product   
+    async AddProduct(req:Request, res:Response) : Promise<void>{
+        const multerReq = req as unknown as MulterRequest
+        const {name, description, price, stockQuantity, weight, categoryId, supplierId, status} = req.body
+        const productPhoto = multerReq.file?.path
+        let productPhotoPath = ''
+        const id = uuidv4()
+        const time = new Date()
+
+        if(productPhoto){
+            const cutProductPhotoFileURL= productPhoto.substring("src/uploads/".length);
+            const newProductFilePath = process.env.HOST_PATH + cutProductPhotoFileURL 
+            productPhotoPath = newProductFilePath
+     
+            if(!name || !description || !price || !stockQuantity || !weight || !categoryId || !supplierId || !status ){
+                DeleteFile(productPhoto)
+                res.status(400).json({
+                    message : "Please fill all required fields"
+                })
+                return
+            }
+
+        }else{
+            res.status(400).json({
+                message : "Please upload product photo"
+            })
+            return
+        }
+
+        await sequelize.query(`INSERT INTO products (id, name, description, price, stockQuantity, productImageUrl, weight, status, createdAt, updatedAt, categoryId,  supplierId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, {
+                type: QueryTypes.INSERT,
+                replacements: [id, name, description, price,  stockQuantity,  productPhotoPath,  weight,  status,  time,  time,  categoryId,  supplierId]
+            }
+        );
+        
+        res.status(200).json({
+            message : 'Product Added Successfully'
+        })
+    }
+
+    // To Fetch Product List
+    
+
+
 
 }
 

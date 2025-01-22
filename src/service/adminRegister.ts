@@ -1,13 +1,13 @@
 import { Query } from "mysql2/typings/mysql/lib/protocol/sequences/Query"
 import sequelize from "../database/connection"
-import { AdminInterface } from "../global/interface/interface"
+import { UserInterface } from "../global/interface/interface"
 import { DataTypes, json, QueryTypes } from "sequelize";
 import { v4 as uuidv4 } from 'uuid';
 import { time, timeStamp } from "console";
 const bcrypt = require('bcrypt');
 
 const AdminRegisterFunction = ()=>{
-    const adminRegister = async (adminList:AdminInterface[])=>{
+    const adminRegister = async (adminList:UserInterface[])=>{
         const currentTimestamp = new Date();
         const hashPassword = bcrypt.hashSync(adminList[0].password, 12);
 
@@ -31,7 +31,7 @@ const AdminRegisterFunction = ()=>{
     }
 
 
-    const adminList:AdminInterface[] = [
+    const adminList:UserInterface[] = [
         {'id':uuidv4(), 
         'name':'admin', 
         'email':'admin@gmail.com',
