@@ -26,5 +26,17 @@ router.route('/category/:categoryId').get(authMiddleware.isAuthenticatedUser, au
 
 // Product Routes
 router.route('/product').post(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.ADMIN), upload.single('productImage'), errorHandler(AdminController.AddProduct))
+                        .get(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.ADMIN), errorHandler(AdminController.FetchProduct))
+router.route('/product/:productId').delete(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.ADMIN), errorHandler(AdminController.DeleteProduct))   
+                                   .get(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.ADMIN), errorHandler(AdminController.FetchSingleProductDetails)) 
+                                   .patch(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.ADMIN), errorHandler(AdminController.UpdateSingleProductDetails))                   
+
+
+// Staff Routes
+router.route('/staff').post(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.ADMIN), upload.single('profile'), errorHandler(AdminController.AddStaff))      
+                      .get(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.ADMIN), errorHandler(AdminController.FetchStaffList))      
+router.route('/staff/:staffId').get(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.ADMIN),errorHandler(AdminController.FetchSingleStaffDetails))    
+                               .patch(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.ADMIN), upload.single('profile'), errorHandler(AdminController.UpdateStaffDetails))  
+                               .delete(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.ADMIN), errorHandler(AdminController.deleteStaff))              
 
 export default router

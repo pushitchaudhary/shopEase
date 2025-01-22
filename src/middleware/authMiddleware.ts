@@ -51,16 +51,13 @@ class authMiddleware {
     // Restrict
     restrictTo(...roles:Role[]){
         return (req:AuthRequest,res:Response,next:NextFunction)=>{
-            console.log('restrict too')
             let userRole = req.role as Role
             if(!roles.includes(userRole)){
-                console.log('restrict not pass')
                 res.status(401).json({
                     message : "You don't have permission"
                 })
                 return
             }else{
-                console.log('restrict pass')
                 next()
             }
         }
