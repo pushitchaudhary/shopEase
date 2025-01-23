@@ -838,6 +838,66 @@ class AdminController{
 
 
     }
+
+    // To Change Admin Password
+    async ChangeAdminPassword(req:UserRequestInterface, res:Response) : Promise<void>{
+        const {userId, role} = req
+        const {newPassword, confirmPassword, currentPassword} = req.body
+        const time = new Date()
+        if(!userId){
+            res.status(400).json({
+                message : "Please Provide User Id"
+            })
+            return
+        }
+
+        if(!role || role !== Role.ADMIN){
+            res.status(400).json({
+                message : 'You are not authorized to perform this action.'
+            })
+            return
+        }
+
+        if(!newPassword || !confirmPassword || !currentPassword){
+            res.status(400).json({
+                message : 'Please Provide All required fileds'
+            })
+            return
+        }
+
+        if(newPassword !== confirmPassword){
+            res.status(400).json({
+                message : "New Password and confirm password doesnot matched !!"
+            })
+            return
+        }
+
+        const [currentAdminPasssword]:any = await sequelize.query(`SELECT password FROM users WHERE id = ? AND role = ?`,{
+            type : QueryTypes.SELECT,
+            replacements :[userId, Role.ADMIN]
+        })
+
+        const isValidPasswrod = await bcrypt.compare(currentPassword, currentAdminPasssword.password);
+        if(isValidPasswrod != true){
+            res.status(400).json({
+                message : "Invalid Password"
+            })
+            return
+        }
+
+        // New Hash password
+        const newHashPassword = bcrypt.hashSync(newPassword, 12);
+
+        await sequelize.query(`UPDATE users SET password = ?, updatedAt = ? WHERE id = ? AND role = ?`,{
+            type : QueryTypes.UPDATE,
+            replacements : [newHashPassword, time, userId, Role.ADMIN]
+        })
+
+        res.status(200).json({
+            message : "Successfully Password Updated"
+        })
+    }
+
 }
 
 export default new AdminController

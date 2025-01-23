@@ -42,6 +42,7 @@ router.route('/staff/:staffId').get(authMiddleware.isAuthenticatedUser, authMidd
 // Profile 
 router.route('/profile').get(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.ADMIN), errorHandler(AdminController.fetchProfileDetails))
                         .patch(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.ADMIN), upload.single('profile'), errorHandler(AdminController.UpdateProfileDetails))
+router.route('/password-change').patch(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.ADMIN), errorHandler(AdminController.ChangeAdminPassword))
 
 
 
