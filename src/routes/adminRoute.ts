@@ -39,4 +39,11 @@ router.route('/staff/:staffId').get(authMiddleware.isAuthenticatedUser, authMidd
                                .patch(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.ADMIN), upload.single('profile'), errorHandler(AdminController.UpdateStaffDetails))  
                                .delete(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.ADMIN), errorHandler(AdminController.deleteStaff))              
 
+// Profile 
+router.route('/profile').get(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.ADMIN), errorHandler(AdminController.fetchProfileDetails))
+                        .patch(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.ADMIN), upload.single('profile'), errorHandler(AdminController.UpdateProfileDetails))
+
+
+
+
 export default router

@@ -757,7 +757,87 @@ class AdminController{
         })
     }
 
+            //////////////////////////////////////////////////
+            ///////////    PROFILE CONTROLLER     ////////////
+            //////////////////////////////////////////////////
 
+    // To Fetch Profile Details
+    async fetchProfileDetails(req:UserRequestInterface, res:Response) : Promise<void>{
+        const {userId, role} = req
+          
+        if(!userId){
+            res.status(400).json({
+                message : "Please Provide User Id"
+            })
+            return
+        }
+
+        if(!role || role !== Role.ADMIN){
+            res.status(400).json({
+                message : 'You are not authorized to perform this action.'
+            })
+            return
+        }
+
+        const [adminDetails] = await sequelize.query(`SELECT name, email, phoneNumber, profilePictureUrl, dateOfBirth, gender, address, createdAt FROM users WHERE id = ? AND role = ?`,{
+            type : QueryTypes.SELECT,
+            replacements : [userId, Role.ADMIN]
+        })
+
+        res.status(200).json({
+            message : adminDetails
+        })
+    }
+
+    // To Update Profile Details
+    async UpdateProfileDetails(req:UserRequestInterface, res:Response) : Promise<void>{
+        const {userId, role} = req
+        const {name, email, phone, dateOfBirth, gender, address} = req.body
+        const multerReq = req as unknown as MulterRequest
+        const time = new Date()
+        if(!userId){
+            res.status(400).json({
+                message : "Please Provide User Id"
+            })
+            return
+        }
+
+        if(!role || role !== Role.ADMIN){
+            res.status(400).json({
+                message : 'You are not authorized to perform this action.'
+            })
+            return
+        }
+
+        const [oldAdminPhotoPath]: UserInterface[] = await sequelize.query(`SELECT profilePictureUrl FROM users WHERE id = ? AND role = ?`,{
+            type : QueryTypes.SELECT,
+            replacements : [userId, Role.ADMIN]
+        })
+
+        const AdminPhoto = multerReq.file?.path
+        let AdminPhotoURLPath = ''
+        let newAdminPhotoURLPath = ''
+
+        if(AdminPhoto){
+            const cutStaffPhotoURL= AdminPhoto.substring("src/uploads/".length);
+            newAdminPhotoURLPath = process.env.HOST_PATH + cutStaffPhotoURL   // Use this for inserting in the table
+            AdminPhotoURLPath = newAdminPhotoURLPath  // Use this for inserting in the table
+            DeleteFile(oldAdminPhotoPath.profilePictureUrl)
+        }else{
+            AdminPhotoURLPath = oldAdminPhotoPath.profilePictureUrl
+        }
+
+        await sequelize.query(`UPDATE users SET name = ?, email = ?, phoneNumber = ?, profilePictureUrl = ?, dateOfBirth = ?, gender = ?, address = ?, updatedAt = ? WHERE id = ?`, {
+            type: QueryTypes.UPDATE,
+            replacements: [name, email, phone, AdminPhotoURLPath, dateOfBirth, gender, address, time, userId]
+        });
+        
+        res.status(200).json({
+            message : "Success Admin Updated"
+        })
+
+
+    }
 }
 
 export default new AdminController
