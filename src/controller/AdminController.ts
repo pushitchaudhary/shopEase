@@ -1,16 +1,11 @@
 import {Request, Response} from 'express'
-import { isValidEmail } from '../global/validation'
 import sequelize from '../database/connection'
 import { DataTypes, QueryTypes } from "sequelize";
 import MulterRequest, { CategoryName, UserInterface, UserRequestInterface } from '../global/interface/interface';
 const bcrypt = require('bcrypt');
 let jwt = require('jsonwebtoken');
-import multer from 'multer';
 import { DeleteFile } from '../service/FileDelete';
 import { v4 as uuidv4 } from 'uuid';
-import { stat } from 'fs';
-import { error, time } from 'console';
-import { waitForDebugger } from 'inspector';
 import { randomInt } from 'crypto';
 import { Role } from '../middleware/authMiddleware';
 
@@ -59,7 +54,7 @@ class AdminController{
         })
 
         // JWT TOKEN
-        const jwtToken = jwt.sign({ adminId: fetchUserData.id}, process.env.ADMIN_JWT_TOKEN);
+        const jwtToken = jwt.sign({ userId: fetchUserData.id}, process.env.ADMIN_JWT_TOKEN);
         res.status(200).json({
             message : jwtToken
         })
@@ -407,7 +402,6 @@ class AdminController{
             type : QueryTypes.SELECT,
             replacements : [1]
         })
-
         res.status(200).json({
             message : categoryList
         })
@@ -583,7 +577,8 @@ class AdminController{
         const {name, email, phone, dateOfBirth, gender, address, status} = req.body
         const id = uuidv4()
         const time = new Date()
-        const randomPassword = randomInt(10000,100000)
+        // const randomPassword = randomInt(10000,100000)
+        const randomPassword = "pushit"
   
         const StaffPhoto = multerReq.file?.path
         let staffPhotoPath = ''
@@ -636,7 +631,7 @@ class AdminController{
         }
 
         // Email Pathau user lai 😂
-        const hashPassword = await bcrypt.hashSync(randomPassword.toString(), 12);
+        const hashPassword = await bcrypt.hashSync(randomPassword, 12);
   
         await sequelize.query(`INSERT INTO users(id, name, email, password, phoneNumber, profilePictureUrl, dateOfBirth, gender, address, role, status, createdAt, updatedAt) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,{
             type : QueryTypes.INSERT,
@@ -851,7 +846,7 @@ class AdminController{
             return
         }
 
-        if(!role || role !== Role.ADMIN){
+        if(!role || role !== Role.STAFF){
             res.status(400).json({
                 message : 'You are not authorized to perform this action.'
             })
@@ -872,12 +867,12 @@ class AdminController{
             return
         }
 
-        const [currentAdminPasssword]:any = await sequelize.query(`SELECT password FROM users WHERE id = ? AND role = ?`,{
+        const [currentStaffPasssword]:any = await sequelize.query(`SELECT password FROM users WHERE id = ? AND role = ?`,{
             type : QueryTypes.SELECT,
-            replacements :[userId, Role.ADMIN]
+            replacements :[userId, Role.STAFF]
         })
 
-        const isValidPasswrod = await bcrypt.compare(currentPassword, currentAdminPasssword.password);
+        const isValidPasswrod = await bcrypt.compare(currentPassword, currentStaffPasssword.password);
         if(isValidPasswrod != true){
             res.status(400).json({
                 message : "Invalid Password"

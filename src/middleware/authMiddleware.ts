@@ -24,9 +24,11 @@ class authMiddleware {
         try {
             // JWT TOKEN
             const decoded = await promisify(jwt.verify)(token, process.env.ADMIN_JWT_TOKEN)
+
+            console.log('decoded :', decoded)
             const [isUserExists]:UserInterface[] = await sequelize.query(`SELECT * FROM users WHERE id = ?`,{
                 type : QueryTypes.SELECT,
-                replacements : [decoded.adminId]
+                replacements : [decoded.userId]
             })
 
             if (!isUserExists) {

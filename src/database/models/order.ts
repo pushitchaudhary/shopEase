@@ -10,10 +10,10 @@ import { PAYMENT_METHOD, STATUS } from "../../global/enum/enumFiles";
 
 class OrderModels extends Model{
     @Column({
-        primaryKey : true,
-        type : DataType.UUID,
-        defaultValue : DataType.UUIDV4,
-        allowNull : false
+        primaryKey: true,
+        type: DataType.INTEGER,
+        autoIncrement: true,  // Auto-increment enabled
+        allowNull: false
     })
     declare id : string
 

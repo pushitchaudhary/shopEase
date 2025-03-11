@@ -1,4 +1,5 @@
 import AdminController from "../controller/AdminController"
+import StaffController from "../controller/StaffController"
 import authMiddleware, { Role } from "../middleware/authMiddleware"
 import { upload } from "../middleware/multer"
 import errorHandler from "../service/catchAsyncErrror"

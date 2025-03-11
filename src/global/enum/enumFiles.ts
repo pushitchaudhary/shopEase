@@ -4,6 +4,14 @@ export enum STATUS {
     ERROR = 'Error'
 }
 
+
+export enum ORDER_STATUS {
+    PENDING = 'Pending',
+    ACCEPTED = 'Accepted',
+    REJECTED = 'Rejected'
+}
+
+
 export enum PAYMENT_METHOD {
     ONLINE_PAYMENT = 'Online_Payment',
     CASH = 'Cash',
