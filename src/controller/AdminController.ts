@@ -23,7 +23,7 @@ class AdminController{
         }
 
         // Query the database to check if the user exists with the provided email
-        const [isUserExists]:UserInterface[] = await sequelize.query(`SELECT password FROM users WHERE email = ?`,{
+        const [isUserExists]:UserInterface[] = await sequelize.query(`SELECT password, role FROM users WHERE email = ?`,{
             type : QueryTypes.SELECT,
             replacements : [email]
         })
@@ -36,6 +36,12 @@ class AdminController{
             return
         }
 
+        if(isUserExists.role !== 'admin'){
+            res.status(400).json({
+                message : 'unauthorized access'
+            })
+            return
+        }
         // Compare the provided password with the hashed password stored in the database
         const match = await bcrypt.compare(password, isUserExists.password);
         
@@ -46,6 +52,7 @@ class AdminController{
             })
             return
         }
+
 
         // Query the database to check if the user exists with the provided email
         const [fetchUserData]:UserInterface[] = await sequelize.query(`SELECT id, name, email, phoneNumber, profilePictureUrl, dateOfBirth, gender, address FROM users WHERE email = ?`,{
@@ -892,6 +899,117 @@ class AdminController{
             message : "Successfully Password Updated"
         })
     }
+
+
+            //////////////////////////////////////////////////
+            ///////////    PROFILE CONTROLLER     ////////////
+            //////////////////////////////////////////////////
+
+    // Fetch Total Product
+    async fetchTotalProduct(req:Request, res:Response) : Promise<void>{
+        const [response] =  await sequelize.query(`SELECT COUNT(*) AS totalItems FROM products`,{
+            type : QueryTypes.SELECT
+        })
+        res.status(200).json({
+            message : response
+        })
+    }
+
+    // Fetch Total Product
+    async fetchTotalSell(req:UserRequestInterface, res:Response) : Promise<void>{
+        const staffId = req.userId
+        if(!staffId){
+            res.status(400).json({
+                message : "Please provide staff id"
+            })
+            return
+        }
+
+        const [response] =  await sequelize.query(`SELECT COUNT(*) AS totalSell FROM orders WHERE orderStatus = ?`,{
+            type : QueryTypes.SELECT,
+            replacements : ['Accepted']
+        })
+        res.status(200).json({
+            message : response
+        })
+    }
+
+    // Fetch Total Product
+    async fetchTotalSellAmount(req:UserRequestInterface, res:Response) : Promise<void>{
+        const staffId = req.userId
+        if(!staffId){
+            res.status(400).json({
+                message : "Please provide staff id"
+            })
+            return
+        }
+
+        const [response] =  await sequelize.query(`SELECT SUM(amount) AS totalSellAmount FROM orders WHERE orderStatus = ?`,{
+            type : QueryTypes.SELECT,
+            replacements : ['Accepted']
+        })
+        res.status(200).json({
+            message : response
+        })
+    }
+
+    // Fetch Today Product
+    async fetchTodaySell(req:UserRequestInterface, res:Response) : Promise<void>{
+        const staffId = req.userId
+        if(!staffId){
+            res.status(400).json({
+                message : "Please provide staff id"
+            })
+            return
+        }
+
+        const [response] =  await sequelize.query(`SELECT COUNT(*) AS totalSell FROM orders WHERE orderStatus = ? AND DATE(createdAt) = CURDATE()`,{
+            type : QueryTypes.SELECT,
+            replacements : ['Accepted']
+        })
+        res.status(200).json({
+            message : response
+        })
+    }
+
+    // Fetch Total Product
+    async fetchTodaySellAmount(req:UserRequestInterface, res:Response) : Promise<void>{
+        const staffId = req.userId
+        if(!staffId){
+            res.status(400).json({
+                message : "Please provide staff id"
+            })
+            return
+        }
+
+        const [response] =  await sequelize.query(`SELECT SUM(amount) AS todaySellAmount FROM orders WHERE orderStatus = ? AND DATE(createdAt) = CURDATE()`,{
+            type : QueryTypes.SELECT,
+            replacements : ['Accepted']
+        })
+        res.status(200).json({
+            message : response
+        })
+    }
+
+    // Top Sell Product
+    async fetchTopSellProduct(req:Request, res:Response) : Promise<void>{
+        const topProducts = await sequelize.query(
+            `SELECT p.id, p.name, p.productImageUrl, p.price, p.stockQuantity, SUM(oi.quantity) AS totalSold
+             FROM orderItems oi
+             JOIN orders o ON oi.orderId = o.id
+             JOIN products p ON oi.productId = p.id
+             WHERE o.orderStatus = 'Accepted'
+             GROUP BY p.id, p.name, p.productImageUrl
+             ORDER BY totalSold DESC
+             LIMIT 8`,
+            { type: QueryTypes.SELECT }
+          );
+          
+          console.log(topProducts)
+    
+          res.status(200).json({ message : topProducts });
+    }
+
 
 }
 

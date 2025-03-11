@@ -46,6 +46,13 @@ router.route('/profile').get(authMiddleware.isAuthenticatedUser, authMiddleware.
 router.route('/password-change').patch(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.ADMIN), errorHandler(AdminController.ChangeAdminPassword))
 
 
+router.route('/total-product-info').get(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.ADMIN), errorHandler(AdminController.fetchTotalProduct))
+router.route('/total-sell-info').get(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.ADMIN),  errorHandler(AdminController.fetchTotalSell))
+router.route('/total-sell-amount-info').get(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.ADMIN), errorHandler(AdminController.fetchTotalSellAmount))
+router.route('/today-sell-info').get(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.ADMIN), errorHandler(AdminController.fetchTodaySell))
+router.route('/today-sell-amount-info').get(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.ADMIN), errorHandler(AdminController.fetchTodaySellAmount))
+router.route('/top-sell-product').get(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.ADMIN), errorHandler(AdminController.fetchTopSellProduct))
+
 
 
 export default router
