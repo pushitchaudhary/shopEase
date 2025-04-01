@@ -13,6 +13,7 @@ router.route('/profile').get(authMiddleware.isAuthenticatedUser, authMiddleware.
 
 // Product Routes
 router.route('/product').get(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.STAFF), errorHandler(StaffController.fetchProductList))
+router.route('/product/:id').get(authMiddleware.isAuthenticatedUser, StaffController.fetchSingleProduct)
 
 router.route('/orders').post(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.STAFF,), errorHandler(StaffController.addOrder))
                        .get(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.STAFF), errorHandler(StaffController.fetchOrder))

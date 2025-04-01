@@ -45,6 +45,9 @@ router.route('/profile').get(authMiddleware.isAuthenticatedUser, authMiddleware.
                         .patch(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.ADMIN), upload.single('profile'), errorHandler(AdminController.UpdateProfileDetails))
 router.route('/password-change').patch(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.ADMIN), errorHandler(AdminController.ChangeAdminPassword))
 
+router.route('/orders').get(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.ADMIN), errorHandler(AdminController.fetchOrderAdmin))
+router.route('/orders/items/:orderId').get(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.STAFF, Role.ADMIN), errorHandler(StaffController.fetchOrderItem))
+
 
 router.route('/total-product-info').get(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.ADMIN), errorHandler(AdminController.fetchTotalProduct))
 router.route('/total-sell-info').get(authMiddleware.isAuthenticatedUser, authMiddleware.restrictTo(Role.ADMIN),  errorHandler(AdminController.fetchTotalSell))

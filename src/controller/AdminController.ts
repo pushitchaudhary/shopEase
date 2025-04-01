@@ -1010,6 +1010,17 @@ class AdminController{
           res.status(200).json({ message : topProducts });
     }
 
+    // Fetch total Orders List
+    async fetchOrderAdmin(req:Request, res:Response) : Promise<void>{
+        const orderList = await sequelize.query(`SELECT O.id, O.date, O.orderStatus, O.amount, staff.name FROM orders O JOIN users staff ON staff.id = O.staffId ORDER BY O.updatedAt DESC`,{
+            type : QueryTypes.SELECT
+        })
+ 
+        res.status(200).json({
+            message : orderList
+        })
+    }
+
 
 }
 

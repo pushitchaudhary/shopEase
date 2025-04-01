@@ -170,6 +170,27 @@ class StaffController {
         })
     }
 
+    // To Fetch Single Product 
+    async fetchSingleProduct(req:UserRequestInterface, res:Response) : Promise<void>{
+        const id = req.params.id
+
+        if(!id){
+            res.status(400).json({
+                message : "Please provide product id"
+            })
+            return
+        }
+
+        const [productDetails] = await sequelize.query(`SELECT p.*, s.name AS supplierName FROM products p JOIN suppliers s ON p.supplierId = s.id WHERE p.id = ? AND p.status = ? `,{
+            type : QueryTypes.SELECT,
+            replacements : [id, '1']
+        })
+
+        res.status(200).json({
+            message : productDetails
+        })
+    }
+
     // Add Order
     async addOrder(req: UserRequestInterface, res: Response): Promise<void> {
         const { orderItems } = req.body;
@@ -267,7 +288,7 @@ class StaffController {
       
     }
     
-    // Fetch Orde
+    // Fetch Order
     async fetchOrder(req:Request, res:Response) : Promise<void>{
         const orderList = await sequelize.query(`SELECT O.id, O.date, O.orderStatus, O.amount, staff.name FROM orders O JOIN users staff ON staff.id = O.staffId ORDER BY O.updatedAt DESC`,{
             type : QueryTypes.SELECT
@@ -293,6 +314,7 @@ class StaffController {
                 replacements : ['1']
             })
         }
+
         res.status(200).json({
             message : productList
         })
